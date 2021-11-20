@@ -1,126 +1,110 @@
-////$('.search-button').on('click', function(){
+// // Input from User Search
+//// const search = document.querySelector('.search-button');
 
-////    $.ajax(
-////        {
-////            url:  'http://www.omdbapi.com/?apikey=2459718a&s=' + $('.input-keyword').val(),
-////            success: results =>{
-////                const movies = results.Search;
-    
-////                console.log(movies);
-    
-////                let cards = "";
-    
-////                movies.forEach(x => {
-////                    cards += showCards(x);
-////                })
-    
-////                $('.movie-container').html(cards);
-    
-    
-    
-////                ////Ketika tombol details di klik
-////                $('.modal-detail-button').on('click', function(){
-////                    $.ajax({
-////                        url:  'http://www.omdbapi.com/?apikey=2459718a&i=' + $(this).data('imdbid'),
-////                        success: m => {
-////                            const movieDetail = showMovieDetail(m);
-    
-////                            $('.modal-body').html(movieDetail);
-////                        },
-    
-////                        error: e => {
-////                            console.log(e.responseText);
-////                        }
-////                    });
-                    
-////                    ////console.log($(this).data('imdbid'));
-////                });
-////            },
-////            error: e => {
-////                console.log(e.responseText);
-////            }
-////        }
-////    )
+//// search.addEventListener('click', function(){
 
-////});
-
-//! FETCH 
-
-// Input from User Search
-const search = document.querySelector('.search-button');
-search.addEventListener('click', function(){
-
-    const inputKeyword = document.querySelector('.input-keyword');  // user input value
+////     const inputKeyword = document.querySelector('.input-keyword');  // user input value
     
-    showLoading0(true) // fetch clicked
+////     showLoading0(true) // fetch clicked
     
-    fetch('http://www.omdbapi.com/?apikey=2459718a&s=' + inputKeyword.value)    //fetch API
-        .catch(error => console.log(error))         // if request rejected
-        .finally(() => showLoading0(false))          // after accepted
-        .then(response => response.json())          // return Promise data type
-        .then(response => {
-            // storage variable
-            const movies = response.Search;
-            let cards = '';
+////     fetch('http://www.omdbapi.com/?apikey=2459718a&s=' + inputKeyword.value)    //fetch API
+////         .catch(error => console.log(error))         // if request rejected
+////         .finally(() => showLoading0(false))          // after accepted
+////        .then(response => response.json())          // return Promise data type
+////         .then(response => {
+//             // storage variable
+////             const movies = response.Search;
+////             let cards = '';
 
-            // iterate through the movies list
-            movies.forEach(x => cards += showCards(x));
+//             // iterate through the movies list
+////             movies.forEach(x => cards += showCards(x));
 
-            // Put all of them in movie-container
-            document.querySelector('.movie-container').innerHTML = cards;
+//             // Put all of them in movie-container
+////             document.querySelector('.movie-container').innerHTML = cards;
 
             
-            // When Details Button Clicked
-            const modalBtn = document.querySelectorAll('.modal-detail-button');
+//             // When Details Button Clicked
+////             const modalBtn = document.querySelectorAll('.modal-detail-button');
 
-            // Iterate through all of the button
-            modalBtn.forEach(btn => {
-                btn.addEventListener('click', function(){
-                    // imdb ID data storage
-                    const imdbID = this.dataset.imdbid;
-                    // Fetch Movie Details API
-                    showLoading1(true);
-                    fetch('http://www.omdbapi.com/?apikey=2459718a&i=' + imdbID)
-                        .finally(() => showLoading1(false))
-                        .then(response => response.json())
-                        .then(movie => {
-                            // movie detail storage
-                            const detail = showMovieDetail(movie);
-                            // put it in modal body
-                            document.querySelector('.modal-body').innerHTML = detail;
-                        })
-                        .catch(error => console.log(error));    // if request rejected
+//             // Iterate through all of the button
+////             modalBtn.forEach(btn => {
+////                 btn.addEventListener('click', function(){
+//                     // imdb ID data storage
+// //                    const imdbID = this.dataset.imdbid;
+//                     // Fetch Movie Details API
+// //                    showLoading1(true);
+////                     fetch('http://www.omdbapi.com/?apikey=2459718a&i=' + imdbID)
+////                         .finally(() => showLoading1(false))
+////                         .then(response => response.json())
+////                         .then(movie => {
+//                             // movie detail storage
+////                             const detail = showMovieDetail(movie);
+//                             // put it in modal body
+////                             document.querySelector('.modal-body').innerHTML = detail;
+////                         })
+////                         .catch(error => console.log(error));    // if request rejected
 
-                }); // when button clicked
-            });
+////                 }); // when button clicked
+////             });
+////         });
+//// });
 
-        });
+//! SearchBtn Event
+const searchBtn = document.querySelector('.search-button');
+searchBtn.addEventListener('click', async function(){
+    // Movies Storage Variable
+    const inputKeyword = document.querySelector('.input-keyword');
+    // Asynchronous with await Keyword
+    const movies = await getMovies(inputKeyword.value);
+    // Put the cards inside the movie-container
+    updateUI(movies);
+});
 
+//! Event Binding
+document.addEventListener('click', async function(e){
+    // If the user click the modal-detail-button
+    if(e.target.classList.contains('modal-detail-button')){
+        const imdbID = e.target.dataset.imdbid;
+        const movieDetails = await getMovieDetails(imdbID);
+        updateUIDetails(movieDetails);
+    }
 });
 
 
-
-
-
-
-
-
-
-
-function showLoading0(bool){
-    if(bool){
-        document.querySelector('.loading-0').classList.add('spinner-border');
-    } else {
-        document.querySelector('.loading-0').classList.remove('spinner-border');
-    }
+//! Functions List
+function getMovieDetails(imdbID){
+    return fetch('http://www.omdbapi.com/?apikey=2459718a&i=' + imdbID)
+    .then(response => response.json())
+    .then(movie => movie)
+    .catch(error => console.log(error));
 }
 
-function showLoading1(bool){
-    if(bool){
-        document.querySelector('.loading-1').classList.add('spinner-border');
-    } else {
-        document.querySelector('.loading-1').classList.remove('spinner-border');
-    }
+function updateUIDetails(movie){
+    const movieDetails = showMovieDetail(movie);
+    const modalBody = document.querySelector('.modal-body');
+    modalBody.innerHTML = movieDetails;
+}
+
+function updateUI(movies) {
+    let cards = '';
+    movies.forEach(x => cards += showCards(x));
+    document.querySelector('.movie-container').innerHTML = cards;
+}
+
+function getMovies(search){
+    // Show Loading in the search button
+    searchBtn.innerHTML = showLoading();
+    // Return Fetch with searching the value from parameter
+    return fetch('http://www.omdbapi.com/?apikey=2459718a&s=' + search)
+        .catch(error => console.log(error))         
+        .finally(() => searchBtn.innerHTML = 'Search')          
+        .then(response => response.json())          
+        .then(response => response.Search);
+}
+
+function showLoading(){
+    return `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    Loading...`;
 }
 
 function showCards(x){
